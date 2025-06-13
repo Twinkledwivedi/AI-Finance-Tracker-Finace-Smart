@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Finance Smart - AI Finance Tracker & Chatbot Assistant</title>
+<!-- Google Material Icons -->
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+<style>
+  /* Reset and box sizing */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  html {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+      Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+    scroll-behavior: smooth;
+  }
+  body {
+    margin: 0;
+    background-color: #ffffff;
+    color: #6b7280; /* neutral gray */
+    line-height: 1.5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  button {
+    font-family: inherit;
+  }
+  /* Utility */
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap; border: 0;
+  }
+
+  /* Layout: Root app container */
+  #app {
+    display: grid;
+    grid-template-columns: 280px 1fr 360px;
+    grid-template-rows: 60px 1fr 40px;
+    grid-template-areas:
+      "header header header"
+      "sidebar main chat"
+      "footer footer footer";
+    height: 100vh;
+    max-width: 1200px;
+    margin: 0 auto;
+    background: #fff;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.05);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  @media (max-width:1024px) {
+    #app {
+      grid-template-columns: 240px 1fr;
+      grid-template-rows: 60px 1fr 40px;
+      grid-template-areas:
+        "header header"
+        "sidebar main"
+        "footer footer";
+      max-width: 100%;
+      border-radius: 0;
+    }
+  }
+  @media (max-width: 640px) {
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      max-width: 100%;
+    }
+  }
+
+  /* Header */
+  header#app-header {
+    grid-area: header;
+    background: #fafafa;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    position: sticky;
+    top: 0;
+    z-index: 15;
+  }
+  .logo {
+    font-size: 28px;
+    font-weight: 700;
+    color: #111827;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo .material-icons {
+    font-size: 32px;
+    color: #4f46e5;
+  }
+  nav#primary-nav {
+    margin-left: auto;
+    display: flex;
+    gap: 24px;
+  }
+  nav#primary-nav a {
+    color: #6b7280;
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  nav#primary-nav a:hover,
+  nav#primary-nav a:focus-visible {
+    background-color: #4f46e5;
+    color: white;
+    outline-offset: 2px;
+    outline: 2px solid transparent;
+  }
+
+  /* Sidebar */
+  aside#sidebar {
+    grid-area: sidebar;
+    border-right: 1px solid #e5e7eb;
+    background: #f9fafb;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
+  }
+  /* Sidebar user */
+  #sidebar .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 24px;
+  }
+  #sidebar .user-profile img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #4f46e5;
+  }
+  #sidebar .user-profile .user-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #111827;
+  }
+  /* Contacts & groups */
+  #sidebar section.sidebar-section {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    gap: 16px;
+  }
+  #sidebar section.sidebar-section h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #4b5563;
+    margin-bottom: 8px;
+  }
+  #sidebar ul.contact-list, 
+  #sidebar ul.group-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  #sidebar ul.contact-list li, 
+  #sidebar ul.group-list li {
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #374151;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+  }
+  #sidebar ul.contact-list li:hover,
+  #sidebar ul.group-list li:hover,
+  #sidebar ul.contact-list li.active,
+  #sidebar ul.group-list li.active {
+    background-color: #eef2ff;
+    color: #4f46e5;
+  }
+  #sidebar ul.contact-list li .material-icons,
+  #sidebar ul.group-list li .material-icons {
+    color: #4f46e5;
+  }
+
+  /* Main content */
+  main#main-content {
+    grid-area: main;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 24px 12px;
+    overflow-y: auto;
+    background: #fff;
+  }
+  main#main-content > h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 16px;
+  }
+
+  /* Finance Dashboard Cards */
+  .dashboard-cards {
+    display: grid;
+    gap: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    margin-bottom: 32px;
+  }
+  .card {
+    background: #fafafa;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: box-shadow 0.3s ease;
+  }
+  .card:hover, .card:focus-within {
+    box-shadow: 0 4px 12px rgba(79,70,229,0.3);
+  }
+  .card .card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #4b5563;
+    margin: 0;
+  }
+  .card .card-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #111827;
+  }
+  .card .card-icon {
+    justify-self: end;
+    color: #4f46e5;
+    font-size: 36px;
+  }
+
+  /* Transactions Section */
+  #transactions-section {
+    margin-bottom: 36px;
+  }
+  #transactions-section header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  #transactions-section header h2 {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: #111827;
+  }
+  #transactions-section header button {
+    background-color: #4f46e5;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  #transactions-section header button:hover {
+    background-color: #4338ca;
+  }
+
+  #transactions-list {
+    max-height: 320px;
+    overflow-y: auto;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    background: #fafafa;
+  }
+  #transactions-list table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 100%;
+  }
+  #transactions-list th, #transactions-list td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+    color: #374151;
+    font-weight: 500;
+  }
+  #transactions-list th {
+    background-color: #f3f4f6;
+    color: #4b5563;
+    font-weight: 700;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  #transactions-list tr:hover {
+    background-color: #eef2ff;
+  }
+  .transaction-amount {
+    font-weight: 700;
+  }
+  .transaction-amount.negative {
+    color: #dc2626; /* red */
+  }
+  .transaction-amount.positive {
+    color: #16a34a; /* green */
+  }
+
+  /* Transaction form modal */
+  #transaction-modal {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(17, 24, 39, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 25;
+  }
+  #transaction-modal.active {
+    display: flex;
+  }
+  #transaction-modal .modal-content {
+    background: #fff;
+    border-radius: 16px;
+    padding: 32px;
+    width: 400px;
+    max-width: 90vw;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+  }
+  #transaction-modal .modal-content h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #111827;
+  }
+  #transaction-modal form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  #transaction-modal label {
+    font-weight: 600;
+    color: #374151;
+  }
+  #transaction-modal input[type="text"],
+  #transaction-modal input[type="number"],
+  #transaction-modal select,
+  #transaction-modal input[type="date"],
+  #transaction-modal input[type="file"] {
+    padding: 10px 12px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #111827;
+    transition: border-color 0.3s ease;
+  }
+  #transaction-modal input[type="text"]:focus,
+  #transaction-modal input[type="number"]:focus,
+  #transaction-modal select:focus,
+  #transaction-modal input[type="date"]:focus,
+  #transaction-modal input[type="file"]:focus {
+    outline: none;
+    border-color: #4f46e5;
+  }
+  #transaction-modal .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+  #transaction-modal .form-actions button {
+    padding: 8px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.3s ease;
+  }
+  #transaction-modal .form-actions button[type="submit"] {
+    background-color: #4f46e5;
+    color: white;
+  }
+  #transaction-modal .form-actions button[type="submit"]:hover {
+    background-color: #4338ca;
+  }
+  #transaction-modal .form-actions button[type="button"] {
+    background-color: #e5e7eb;
+    color: #374151;
+  }
+  #transaction-modal .form-actions button[type="button"]:hover {
+    background-color: #d1d5db;
+  }
+
+  /* Chart container */
+  #chart-container {
+    width: 100%;
+    max-width: 100%;
+    height: 220px;
+  }
+
+  /* Chat container */
+  aside#chat-panel {
+    grid-area: chat;
+    border-left: 1px solid #e5e7eb;
+    background: #fefefe;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+  }
+  #chat-panel header.chat-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+  }
+  #chat-panel header.chat-header .chat-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+    flex-grow: 1;
+  }
+  #chat-panel header.chat-header .status-indicator {
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+
+  #chat-messages {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-right: 8px;
+    scroll-behavior: smooth;
+  }
+  #chat-messages .message {
+    display: flex;
+    margin-bottom: 12px;
+    max-width: 85%;
+  }
+  #chat-messages .message .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+  #chat-messages .message.user {
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+  }
+  #chat-messages .message.user .avatar {
+    margin-left: 12px;
+    margin-right: 0;
+  }
+  #chat-messages .message.user .message-content {
+    background-color: #4f46e5;
+    color: white;
+    border-radius: 16px 16px 0 16px;
+    padding: 10px 16px;
+    position: relative;
+    word-break: break-word;
+  }
+  #chat-messages .message.assistant .message-content {
+    background-color: #eef2ff;
+    color: #111827;
+    border-radius: 16px 16px 16px 0;
+    padding: 10px 16px;
+    position: relative;
+    word-break: break-word;
+  }
+  #chat-messages .message .message-content small.timestamp {
+    display: block;
+    font-size: 0.7rem;
+    color: #9ca3af;
+    margin-top: 4px;
+    user-select: none;
+  }
+
+  /* Message input form */
+  #chat-input-form {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  #chat-input-form textarea {
+    flex-grow: 1;
+    padding: 10px 16px;
+    border-radius: 20px;
+    border: 1.5px solid #d1d5db;
+    resize: none;
+    overflow-y: auto;
+    max-height: 120px;
+    font-family: inherit;
+    font-size: 1rem;
+    color: #111827;
+    transition: border-color 0.3s ease;
+  }
+  #chat-input-form textarea:focus {
+    outline: none;
+    border-color: #4f46e5;
+  }
+  #chat-input-form button.send-btn {
+    background-color: #4f46e5;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.3s ease;
+  }
+  #chat-input-form button.send-btn:disabled {
+    background-color: #a5b4fc;
+    cursor: not-allowed;
+  }
+  #chat-input-form button.send-btn:hover:not(:disabled) {
+    background-color: #4338ca;
+  }
+
+  /* Typing indicator */
+  #typing-indicator {
+    font-style: italic;
+    font-size: 0.9rem;
+    color: #6b7280;
+    padding-left: 48px;
+    min-height: 24px;
+  }
+
+  /* File upload preview thumbnails in chat */
+  .file-preview {
+    margin-top: 6px;
+    max-width: 200px;
+    border-radius: 12px;
+  }
+  .file-link {
+    color: #4f46e5;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  /* Voice message playback */
+  audio.voice-message {
+    width: 180px;
+    margin-top: 6px;
+    outline: none;
+  }
+
+  /* Scrollbar styles for chat and lists */
+  #chat-messages::-webkit-scrollbar,
+  #transactions-list::-webkit-scrollbar,
+  .sidebar-section ul::-webkit-scrollbar {
+    width: 8px;
+  }
+  #chat-messages::-webkit-scrollbar-thumb,
+  #transactions-list::-webkit-scrollbar-thumb,
+  .sidebar-section ul::-webkit-scrollbar-thumb {
+    background-color: #9ca3af;
+    border-radius: 4px;
+  }
+  
+</style>
+</head>
+<body>
+<div id="app" role="application" aria-label="Finance Smart - AI Finance Tracker and Chat Assistant">
+  <header id="app-header">
+    <div class="logo" aria-label="Finance Smart logo">
+      <span class="material-icons" aria-hidden="true">account_balance_wallet</span>
+      Finance Smart
+    </div>
+    <nav id="primary-nav" role="navigation" aria-label="Primary Navigation">
+      <a href="#dashboard" tabindex="0">Dashboard</a>
+      <a href="#transactions" tabindex="0">Transactions</a>
+      <a href="#chat" tabindex="0">Chatbot</a>
+    </nav>
+  </header>
+
+  <aside id="sidebar" aria-label="User Profile and Contacts Sidebar">
+    <div class="user-profile" tabindex="0">
+      <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/030b42ad-76d0-4a44-93ba-4c513004e083.png" alt="User avatar of John Doe" />
+      <div class="user-name">John Doe</div>
+    </div>
+    <section class="sidebar-section" aria-label="Contacts">
+      <h2>Contacts</h2>
+      <ul class="contact-list" role="list" tabindex="0" aria-label="Contact List">
+        <li class="active" data-contact-id="chatbot" tabindex="0"><span class="material-icons" aria-hidden="true">smart_toy</span>Finance Bot</li>
+        <li data-contact-id="alice" tabindex="0"><span class="material-icons" aria-hidden="true">person</span>Alice</li>
+        <li data-contact-id="bob" tabindex="0"><span class="material-icons" aria-hidden="true">person</span>Bob</li>
+      </ul>
+    </section>
+    <section class="sidebar-section" aria-label="Groups">
+      <h2>Groups</h2>
+      <ul class="group-list" role="list" tabindex="0" aria-label="Group List">
+        <li data-group-id="friends" tabindex="0"><span class="material-icons" aria-hidden="true">group</span>Friends</li>
+        <li data-group-id="family" tabindex="0"><span class="material-icons" aria-hidden="true">group</span>Family</li>
+      </ul>
+    </section>
+  </aside>
+
+  <main id="main-content" tabindex="0">
+    <!-- Dashboard Section -->
+    <section id="dashboard" aria-label="Finance Dashboard" tabindex="0">
+      <h1>Finance Dashboard</h1>
+      <div class="dashboard-cards">
+        <div class="card" tabindex="0" aria-label="Total Balance">
+          <div class="card-title">Total Balance</div>
+          <div class="card-value" id="total-balance">$0.00</div>
+          <span class="material-icons card-icon" aria-hidden="true">account_balance</span>
+        </div>
+        <div class="card" tabindex="0" aria-label="Total Income">
+          <div class="card-title">Total Income</div>
+          <div class="card-value" id="total-income">$0.00</div>
+          <span class="material-icons card-icon" aria-hidden="true">arrow_downward</span>
+        </div>
+        <div class="card" tabindex="0" aria-label="Total Expenses">
+          <div class="card-title">Total Expenses</div>
+          <div class="card-value" id="total-expenses">$0.00</div>
+          <span class="material-icons card-icon" aria-hidden="true">arrow_upward</span>
+        </div>
+      </div>
+      <section id="chart-section" aria-label="Income and Expense chart" tabindex="0">
+        <canvas id="finance-chart" aria-describedby="chart-description" role="img"></canvas>
+        <div id="chart-description" class="sr-only">Line chart representing income and expenses over past months</div>
+      </section>
+    </section>
+
+    <!-- Transactions Section -->
+    <section id="transactions-section" aria-label="Transactions" tabindex="0" hidden>
+      <header>
+        <h2>Transactions</h2>
+        <button type="button" id="add-transaction-button" aria-haspopup="dialog">Add Transaction</button>
+      </header>
+      <div id="transactions-list" tabindex="0" aria-live="polite" aria-relevant="additions">
+        <table aria-label="List of financial transactions">
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Type</th>
+              <th scope="col">Category</th>
+              <th scope="col">Amount</th>
+              <th scope="col">Notes</th>
+              <th scope="col">Attachment</th>
+            </tr>
+          </thead>
+          <tbody id="transactions-tbody">
+            <!-- Transactions will be dynamically injected here -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Chat Panel -->
+  <aside id="chat-panel" aria-label="Chat Assistant Panel" tabindex="0" hidden>
+    <header class="chat-header">
+      <div class="chat-title">Finance Bot Assistant</div>
+      <div class="status-indicator" aria-live="polite" aria-atomic="true" id="chat-status">Online</div>
+    </header>
+    <section id="chat-messages" tabindex="0" role="log" aria-live="polite" aria-relevant="additions">
+      <!-- Messages appear here -->
+    </section>
+    <div id="typing-indicator" aria-live="polite"></div>
+    <form id="chat-input-form" aria-label="Send a message or file">
+      <textarea id="chat-input" rows="1" placeholder="Type a message or drag files here..." aria-autocomplete="list" aria-controls="chat-messages"></textarea>
+      <button type="submit" class="send-btn" aria-label="Send message" disabled>
+        <span class="material-icons" aria-hidden="true">send</span>
+      </button>
+    </form>
+  </aside>
+
+  <!-- Footer -->
+  <footer id="app-footer" aria-label="Application Footer" tabindex="0" style="grid-area: footer; display:none;">
+    <!-- Intentionally left empty or for future use -->
+  </footer>
+</div>
+
+<!-- Modals -->
+<div id="transaction-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc">
+  <div class="modal-content">
+    <h3 id="modal-title">Add New Transaction</h3>
+    <form id="transaction-form">
+      <label for="transaction-type">Type</label>
+      <select id="transaction-type" name="type" required>
+        <option value="" disabled selected>Select transaction type</option>
+        <option value="income">Income</option>
+        <option value="expense">Expense</option>
+      </select>
+
+      <label for="transaction-category">Category</label>
+      <input type="text" id="transaction-category" name="category" placeholder="Enter category" required />
+
+      <label for="transaction-amount">Amount</label>
+      <input type="number" id="transaction-amount" name="amount" placeholder="Enter amount" min="0.01" step="0.01" required />
+
+      <label for="transaction-date">Date</label>
+      <input type="date" id="transaction-date" name="date" required />
+
+      <label for="transaction-notes">Notes</label>
+      <input type="text" id="transaction-notes" name="notes" placeholder="Additional notes (optional)" />
+
+      <label for="transaction-file">Attachment (supports all file types)</label>
+      <input type="file" id="transaction-file" name="file" accept="*/*" />
+
+      <div class="form-actions">
+        <button type="button" id="cancel-transaction-btn">Cancel</button>
+        <button type="submit" id="save-transaction-btn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  (() => {
+    "use strict";
+
+    // Data: sample demo data for transactions and conversations
+    let transactions = [];
+    let conversations = {
+      chatbot: [],
+      alice: [],
+      bob: []
+    };
+    const demoUser = {
+      id: "user",
+      name: "John Doe",
+      avatar: "https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/f5d42e5f-e8d9-40d1-bf7f-8fe141bb6b18.png"
+    };
+    const demoBot = {
+      id: "chatbot",
+      name: "Finance Bot",
+      avatar: "https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/89ef6ea5-ad6d-4d30-989a-75db95a2858d.png"
+    };
+
+    // Current UI state
+    let currentContact = "chatbot"; // default to chatbot
+
+    // DOM references
+    const dashboardSection = document.getElementById("dashboard");
+    const transactionsSection = document.getElementById("transactions-section");
+    const chatPanel = document.getElementById("chat-panel");
+    const chatMessagesContainer = document.getElementById("chat-messages");
+    const chatInputForm = document.getElementById("chat-input-form");
+    const chatInputField = document.getElementById("chat-input");
+    const chatSendButton = chatInputForm.querySelector("button.send-btn");
+    const typingIndicator = document.getElementById("typing-indicator");
+    const addTransactionBtn = document.getElementById("add-transaction-button");
+    const transactionModal = document.getElementById("transaction-modal");
+    const transactionForm = document.getElementById("transaction-form");
+    const transactionsTbody = document.getElementById("transactions-tbody");
+    const totalBalanceElem = document.getElementById("total-balance");
+    const totalIncomeElem = document.getElementById("total-income");
+    const totalExpensesElem = document.getElementById("total-expenses");
+    const financeChartCtx = document.getElementById("finance-chart").getContext("2d");
+    const sidebarContacts = document.querySelectorAll("#sidebar ul.contact-list li");
+    const sidebarGroups = document.querySelectorAll("#sidebar ul.group-list li");
+    const navLinks = document.querySelectorAll("#primary-nav a");
+
+    // Chart.js will be built manually inline (simple line chart)
+    // We will implement a minimal chart drawing instead of Chart.js to avoid dependencies
+
+    // Helper: format currency
+    function formatCurrency(value) {
+      const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+      return formatter.format(value);
+    }
+
+    // Load demo data into transactions and initial chat conversation
+    function loadDemoData() {
+      // demo transactions
+      transactions = [
+        {
+          id: "t1",
+          date: "2024-06-01",
+          type: "income",
+          category: "Salary",
+          amount: 5500.00,
+          notes: "Monthly salary",
+          file: null,
+        },
+        {
+          id: "t2",
+          date: "2024-06-03",
+          type: "expense",
+          category: "Rent",
+          amount: 1500.00,
+          notes: "Apartment rent",
+          file: null,
+        },
+        {
+          id: "t3",
+          date: "2024-06-15",
+          type: "expense",
+          category: "Groceries",
+          amount: 320.45,
+          notes: "Supermarket shopping",
+          file: null,
+        },
+        {
+          id: "t4",
+          date: "2024-06-20",
+          type: "income",
+          category: "Freelance",
+          amount: 800.00,
+          notes: "Project client payment",
+          file: null,
+        }
+      ];
+
+      // demo conversation for chatbot
+      conversations.chatbot = [
+        {
+          id: "m1",
+          sender: "chatbot",
+          content: "Hello! I'm Finance Bot. I can help you track your finances and answer your questions. How can I assist you today?",
+          timestamp: new Date(Date.now() - 600000)
+        },
+        {
+          id: "m2",
+          sender: "user",
+          content: "How much did I earn this month?",
+          timestamp: new Date(Date.now() - 590000)
+        },
+        {
+          id: "m3",
+          sender: "chatbot",
+          content: "You earned $6,300.00 so far this month.",
+          timestamp: new Date(Date.now() - 580000)
+        }
+      ];
+      // empty conversations for others
+      conversations.alice = [];
+      conversations.bob = [];
+    }
+
+    // Save and load data from localStorage
+    function saveData() {
+      localStorage.setItem("financeTransactions", JSON.stringify(transactions));
+      localStorage.setItem("financeConversations", JSON.stringify(conversations));
+    }
+    function loadData() {
+      const storedTransactions = localStorage.getItem("financeTransactions");
+      const storedConversations = localStorage.getItem("financeConversations");
+      if (storedTransactions) {
+        try {
+          transactions = JSON.parse(storedTransactions);
+        } catch {
+          transactions = [];
+        }
+      }
+      if (storedConversations) {
+        try {
+          conversations = JSON.parse(storedConversations);
+        } catch {
+          conversations = { chatbot: [], alice: [], bob: [] };
+        }
+      }
+    }
+
+    // Compute finance summaries
+    function computeSummaries() {
+      let income = 0;
+      let expenses = 0;
+      for (const tx of transactions) {
+        if (tx.type === "income") income += Number(tx.amount);
+        else if (tx.type === "expense") expenses += Number(tx.amount);
+      }
+      return { income, expenses, balance: income - expenses };
+    }
+
+    // Update dashboard summary cards
+    function updateDashboard() {
+      const { income, expenses, balance } = computeSummaries();
+      totalBalanceElem.textContent = formatCurrency(balance);
+      totalIncomeElem.textContent = formatCurrency(income);
+      totalExpensesElem.textContent = formatCurrency(expenses);
+    }
+
+    // Render transactions table
+    function renderTransactions() {
+      transactionsTbody.innerHTML = "";
+      const sortedTx = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+      for (const tx of sortedTx) {
+        const tr = document.createElement("tr");
+        tr.tabIndex = 0;
+
+        const dateTd = document.createElement("td");
+        dateTd.textContent = tx.date;
+        const typeTd = document.createElement("td");
+        typeTd.textContent = tx.type.charAt(0).toUpperCase() + tx.type.slice(1);
+        const categoryTd = document.createElement("td");
+        categoryTd.textContent = tx.category;
+        const amountTd = document.createElement("td");
+        amountTd.textContent = formatCurrency(tx.amount);
+        amountTd.className = "transaction-amount " + (tx.type === "income" ? "positive" : "negative");
+        const notesTd = document.createElement("td");
+        notesTd.textContent = tx.notes || "";
+        const fileTd = document.createElement("td");
+        if (tx.file && tx.file.name) {
+          const fileLink = document.createElement("a");
+          fileLink.textContent = tx.file.name;
+          fileLink.href = tx.file.dataUrl || "#";
+          fileLink.target = "_blank";
+          fileLink.className = "file-link";
+          fileLink.rel = "noopener noreferrer";
+          fileTd.appendChild(fileLink);
+        }
+
+        tr.append(dateTd, typeTd, categoryTd, amountTd, notesTd, fileTd);
+        transactionsTbody.appendChild(tr);
+      }
+    }
+
+    // Simple chart drawing in canvas for income and expenses over last 6 months
+    function drawFinanceChart() {
+      const ctx = financeChartCtx;
+      const chart = document.getElementById("finance-chart");
+      const width = chart.clientWidth;
+      const height = chart.clientHeight;
+      chart.width = width * devicePixelRatio;
+      chart.height = height * devicePixelRatio;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(devicePixelRatio, devicePixelRatio);
+      ctx.clearRect(0, 0, width, height);
+
+      // Prepare data: monthly income & expenses for last 6 months including current
+      const now = new Date();
+      const months = [];
+      const incomeData = [];
+      const expenseData = [];
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        months.push(d.toLocaleString('default', { month: 'short' }));
+        const y = d.getFullYear();
+        const m = d.getMonth() + 1;
+        let incomeMonth = 0;
+        let expenseMonth = 0;
+        for (const tx of transactions) {
+          const [yTx, mTx] = tx.date.split("-").map(Number);
+          if (yTx === y && mTx === m) {
+            if (tx.type === "income") incomeMonth += Number(tx.amount);
+            else if (tx.type === "expense") expenseMonth += Number(tx.amount);
+          }
+        }
+        incomeData.push(incomeMonth);
+        expenseData.push(expenseMonth);
+      }
+      // Chart dimensions & padding
+      const padding = 40;
+      const chartWidth = width - (padding * 2);
+      const chartHeight = height - (padding * 2);
+
+      // Axis lines
+      ctx.strokeStyle = "#d1d5db";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      // y axis
+      ctx.moveTo(padding, padding);
+      ctx.lineTo(padding, padding + chartHeight);
+      // x axis
+      ctx.lineTo(padding + chartWidth, padding + chartHeight);
+      ctx.stroke();
+
+      // Max values for scaling
+      const maxVal = Math.max(...incomeData, ...expenseData, 100); // ensure minimum scale
+
+      // Draw ticks on Y axis (5 horizontal lines)
+      ctx.fillStyle = "#6b7280";
+      ctx.textAlign = "right";
+      ctx.font = "12px Inter, sans-serif";
+      ctx.textBaseline = "middle";
+      ctx.lineWidth = 0.5;
+      for (let i = 0; i <= 5; i++) {
+        const y = padding + chartHeight - (chartHeight / 5) * i;
+        ctx.beginPath();
+        ctx.strokeStyle = "#e5e7eb";
+        ctx.moveTo(padding, y);
+        ctx.lineTo(padding + chartWidth, y);
+        ctx.stroke();
+        const val = Math.round(maxVal / 5 * i);
+        ctx.fillText(formatCurrency(val), padding - 10, y);
+      }
+
+      // Draw months on X axis
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      for (let i = 0; i < months.length; i++) {
+        const x = padding + chartWidth / (months.length - 1) * i;
+        ctx.fillText(months[i], x, padding + chartHeight + 8);
+      }
+
+      // Helper function to transform data point to canvas pos
+      function getY(val) {
+        return padding + chartHeight - (val / maxVal) * chartHeight;
+      }
+      function getX(idx) {
+        return padding + chartWidth / (months.length - 1) * idx;
+      }
+
+      // Draw line function
+      function drawLine(data, color) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let i = 0; i < data.length; i++) {
+          const x = getX(i);
+          const y = getY(data[i]);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x , y);
+        }
+        ctx.stroke();
+
+        // Draw points
+        ctx.fillStyle = color;
+        for (let i = 0; i < data.length; i++) {
+          const x = getX(i);
+          const y = getY(data[i]);
+          ctx.beginPath();
+          ctx.arc(x, y, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Draw income - teal
+      drawLine(incomeData, "#14b8a6");
+      // Draw expenses - red
+      drawLine(expenseData, "#ef4444");
+
+      // Legend
+      const legendX = padding + 10;
+      const legendY = padding - 25;
+      ctx.font = "12px Inter, sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#14b8a6";
+      ctx.fillRect(legendX, legendY, 12, 12);
+      ctx.fillStyle = "#111827";
+      ctx.fillText("Income", legendX + 16, legendY + 10);
+      ctx.fillStyle = "#ef4444";
+      ctx.fillRect(legendX + 90, legendY, 12, 12);
+      ctx.fillStyle = "#111827";
+      ctx.fillText("Expenses", legendX + 106, legendY + 10);
+    }
+
+    // Rendering chat messages
+    function renderChatMessages() {
+      chatMessagesContainer.innerHTML = "";
+      const msgs = conversations[currentContact] || [];
+      for (const msg of msgs) {
+        addChatMessage(msg, false);
+      }
+      // scroll to bottom
+      setTimeout(() => chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight, 100);
+    }
+
+    // Add a chat message to display, scrolls to bottom
+    function addChatMessage(msg, save = true) {
+      const messageDiv = document.createElement("div");
+      messageDiv.classList.add("message");
+      messageDiv.setAttribute("tabindex", "0");
+      messageDiv.setAttribute("aria-label", msg.sender === "user" ? "You said: " + msg.content : msg.sender + " said: " + msg.content);
+      if (msg.sender === "user") {
+        messageDiv.classList.add("user");
+      } else {
+        messageDiv.classList.add("assistant");
+      }
+      // Avatar
+      const avatarImg = document.createElement("img");
+      avatarImg.className = "avatar";
+      if (msg.sender === "user") {
+        avatarImg.src = demoUser.avatar;
+        avatarImg.alt = demoUser.name + " avatar";
+      } else {
+        avatarImg.src = demoBot.avatar;
+        avatarImg.alt = demoBot.name + " avatar";
+      }
+      messageDiv.appendChild(avatarImg);
+
+      // Content box
+      const contentDiv = document.createElement("div");
+      contentDiv.className = "message-content";
+
+      // Render message content & attachments
+      if (msg.content) {
+        const textP = document.createElement("p");
+        textP.textContent = msg.content;
+        contentDiv.appendChild(textP);
+      }
+      if (msg.file) {
+        if (msg.file.type.startsWith("image/")) {
+          const img = document.createElement("img");
+          img.className = "file-preview";
+          img.src = msg.file.dataUrl;
+          img.alt = "Image attachment";
+          contentDiv.appendChild(img);
+        } else if (msg.file.type.startsWith("audio/")) {
+          const audio = document.createElement("audio");
+          audio.className = "voice-message";
+          audio.controls = true;
+          audio.src = msg.file.dataUrl;
+          audio.setAttribute("aria-label", "Voice message audio playback");
+          contentDiv.appendChild(audio);
+        } else {
+          const a = document.createElement("a");
+          a.className = "file-link";
+          a.href = msg.file.dataUrl;
+          a.textContent = msg.file.name;
+          a.target = "_blank";
+          a.rel = "noopener noreferrer";
+          contentDiv.appendChild(a);
+        }
+      }
+
+      // Timestamp
+      const ts = document.createElement("small");
+      ts.className = "timestamp";
+      ts.textContent = new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      contentDiv.appendChild(ts);
+
+      messageDiv.appendChild(contentDiv);
+      chatMessagesContainer.appendChild(messageDiv);
+      // Scroll to bottom
+      setTimeout(() => chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight, 100);
+
+      // Save message if requested
+      if (save) {
+        conversations[currentContact].push(msg);
+        saveData();
+      }
+    }
+
+    // Detect current section by nav link click, show/hide sections
+    function setupNavigation() {
+      navLinks.forEach(link => {
+        link.addEventListener("click", (e) => {
+          e.preventDefault();
+          const id = link.getAttribute("href").slice(1);
+          switchSection(id);
+          setActiveNavLink(id);
+        });
+      });
+    }
+    function setActiveNavLink(id) {
+      navLinks.forEach(link => {
+        if (link.getAttribute("href").slice(1) === id) {
+          link.classList.add("active-nav");
+        } else {
+          link.classList.remove("active-nav");
+        }
+      });
+    }
+    function switchSection(sectionId) {
+      if (sectionId === "dashboard") {
+        dashboardSection.hidden = false;
+        transactionsSection.hidden = true;
+        chatPanel.hidden = true;
+      } else if (sectionId === "transactions") {
+        dashboardSection.hidden = true;
+        transactionsSection.hidden = false;
+        chatPanel.hidden = true;
+      } else if (sectionId === "chat") {
+        dashboardSection.hidden = true;
+        transactionsSection.hidden = true;
+        chatPanel.hidden = false;
+        chatInputField.focus();
+      }
+    }
+
+    // Sidebar contact clicks switch conversations/chat
+    function setupSidebarContacts() {
+      sidebarContacts.forEach(li => {
+        li.addEventListener("click", () => {
+          sidebarContacts.forEach(item => item.classList.remove("active"));
+          li.classList.add("active");
+          currentContact = li.getAttribute("data-contact-id");
+          switchSection("chat");
+          renderChatMessages();
+          chatInputField.focus();
+        });
+      });
+      sidebarGroups.forEach(li => {
+        li.addEventListener("click", () => {
+          alert("Group chat feature not implemented in this demo.");
+        });
+      });
+    }
+
+    // Chat input form submit handler
+    chatInputForm.addEventListener("submit", e => {
+      e.preventDefault();
+      const text = chatInputField.value.trim();
+      if (!text) return;
+      sendUserMessage(text);
+      chatInputField.value = "";
+      chatSendButton.disabled = true;
+    });
+    chatInputField.addEventListener("input", () => {
+      chatSendButton.disabled = chatInputField.value.trim().length === 0;
+    });
+
+    // Support drag and drop file upload in chat input
+    chatInputField.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      chatInputField.style.borderColor = "#4f46e5";
+    });
+    chatInputField.addEventListener("dragleave", (e) => {
+      e.preventDefault();
+      chatInputField.style.borderColor = "";
+    });
+    chatInputField.addEventListener("drop", (e) => {
+      e.preventDefault();
+      chatInputField.style.borderColor = "";
+      if (e.dataTransfer.files.length > 0) {
+        for (const file of e.dataTransfer.files) {
+          processChatFile(file);
+        }
+      }
+    });
+
+    // Send user message & simulate bot response w/ typing indicator & latency
+    function sendUserMessage(text, file = null) {
+      const msg = {
+        id: "m" + Date.now(),
+        sender: "user",
+        content: text,
+        file,
+        timestamp: new Date()
+      };
+      addChatMessage(msg);
+      simulateBotResponse(msg);
+    }
+    // Helper: convert File to base64 data URL for preview & storage
+    function fileToDataURL(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+    // Process chat file upload
+    async function processChatFile(file) {
+      const dataUrl = await fileToDataURL(file);
+      sendUserMessage("Sent a file: " + file.name, { name: file.name, type: file.type, dataUrl });
+    }
+
+    // Simulated bot typing and response logic
+    let botTypingTimeout = null;
+    function simulateBotResponse(userMsg) {
+      typingIndicator.textContent = demoBot.name + " is typing...";
+      if (botTypingTimeout) clearTimeout(botTypingTimeout);
+
+      botTypingTimeout = setTimeout(() => {
+        typingIndicator.textContent = "";
+        const botMessage = generateBotReply(userMsg);
+        addChatMessage(botMessage);
+      }, 1500 + Math.random() * 1500);
+    }
+
+    // Generate bot reply based on user message content (rudimentary AI)
+    function generateBotReply(userMsg) {
+      const userText = userMsg.content.toLowerCase();
+      const now = new Date();
+      let replyText = "";
+
+      // Simple keyword matching for finance info & feature help
+      if(userText.includes("how much") && userText.includes("earn")) {
+        const { income } = computeSummaries();
+        replyText = `You earned ${formatCurrency(income)} so far this month.`;
+      } else if(userText.includes("how much") && userText.includes("spend")) {
+        const { expenses } = computeSummaries();
+        replyText = `You have spent ${formatCurrency(expenses)} so far this month.`;
+      } else if(userText.includes("balance")) {
+        const { balance } = computeSummaries();
+        replyText = `Your current balance is ${formatCurrency(balance)}.`;
+      } else if(userText.includes("help") || userText.includes("features")) {
+        replyText = "I can help you track income and expenses, add transactions, and generate reports. Ask me about your balance or send files related to your expenses.";
+      } else if(userText.startsWith("add income") || userText.startsWith("add expense")) {
+        replyText = "Please use the 'Add Transaction' button to add your income or expense quickly and securely.";
+      } else {
+        replyText = "Sorry, I didn't understand that. You can ask me about your earnings, expenses, balance or how to add transactions.";
+      }
+
+      return {
+        id: "m"+Date.now(),
+        sender: "chatbot",
+        content: replyText,
+        timestamp: now
+      };
+    }
+
+    // Manage showing the Add Transaction modal dialog
+    addTransactionBtn.addEventListener("click", () => {
+      transactionModal.classList.add("active");
+      transactionForm.reset();
+      document.getElementById("transaction-type").focus();
+    });
+    document.getElementById("cancel-transaction-btn").addEventListener("click", () => {
+      transactionModal.classList.remove("active");
+      addTransactionBtn.focus();
+    });
+    // Close modal if user clicks outside form content
+    transactionModal.addEventListener("click", (e) => {
+      if (e.target === transactionModal) {
+        transactionModal.classList.remove("active");
+        addTransactionBtn.focus();
+      }
+    });
+    // Handle adding transaction form submission
+    transactionForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(transactionForm);
+      const type = formData.get("type");
+      const category = formData.get("category").trim();
+      const amountRaw = formData.get("amount");
+      const amount = parseFloat(amountRaw);
+      const date = formData.get("date");
+      const notes = formData.get("notes")?.trim() || "";
+      const file = formData.get("file");
+
+      if (!type || !category || isNaN(amount) || amount <= 0 || !date) {
+        alert("Please fill in all required fields with valid data.");
+        return;
+      }
+
+      let fileInfo = null;
+      if (file && file.name) {
+        // Read file as data URL for display & save
+        fileInfo = {
+          name: file.name,
+          type: file.type,
+          dataUrl: await fileToDataURL(file)
+        };
+      }
+
+      const newTx = {
+        id: "t" + Date.now(),
+        type,
+        category,
+        amount,
+        date,
+        notes,
+        file: fileInfo
+      };
+      transactions.push(newTx);
+      saveData();
+      updateDashboard();
+      renderTransactions();
+      drawFinanceChart();
+      transactionModal.classList.remove("active");
+      addTransactionBtn.focus();
+    });
+
+    // Initialize UI and load data
+    function init() {
+      // Load data from localStorage or demo fallback
+      loadData();
+      if (transactions.length === 0) {
+        loadDemoData();
+        saveData();
+      }
+      updateDashboard();
+      renderTransactions();
+      drawFinanceChart();
+      setupNavigation();
+      setupSidebarContacts();
+      switchSection("dashboard");
+      chatSendButton.disabled = true;
+      renderChatMessages();
+    }
+
+    // Initial call
+    window.addEventListener("load", init);
+  })();
+</script>
+</body>
+</html>
+
